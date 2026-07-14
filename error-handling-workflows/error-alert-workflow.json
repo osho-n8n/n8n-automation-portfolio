@@ -1,0 +1,93 @@
+{
+  "name": "error-notification-handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6e56ceeb-98fa-4f1a-b046-ef595fb9efbf",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "leads",
+          "mode": "name"
+        },
+        "text": "=🚨 Workflow Failed: {{ $json.workflow.name }} Node: {{ $json.execution.error.node.name }} Error: {{ $json.execution.error.message }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        208,
+        0
+      ],
+      "id": "390996a1-fb99-48b5-a29e-a507003f91d4",
+      "name": "Send a message",
+      "webhookId": "63f87770-8341-4767-9083-6e1bc4b10431",
+      "credentials": {
+        "slackApi": {
+          "id": "sNLB7yLWH8fERLmU",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Error Trigger": [
+      {
+        "json": {
+          "execution": {
+            "id": "12345",
+            "error": {
+              "message": "Test error message",
+              "node": {
+                "name": "Gmail"
+              }
+            }
+          },
+          "workflow": {
+            "id": "abc123",
+            "name": "bulk-lead-email-campaign-workflow"
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "76047625-771b-4399-81c1-3a3b1b494bbd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "kFDCCIg3Otrw52sb",
+  "tags": []
+}

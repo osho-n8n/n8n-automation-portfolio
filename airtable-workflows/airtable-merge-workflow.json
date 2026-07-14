@@ -1,0 +1,160 @@
+{
+  "name": "Merge Node - Data Combination Test",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        64
+      ],
+      "id": "19f77243-dc4d-4e46-8316-88c32b393e2e",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c4a26880-c836-4e21-802a-3a1b70bb490d",
+              "name": "Name",
+              "value": "Ali",
+              "type": "string"
+            },
+            {
+              "id": "d169895d-62f6-48ba-a73a-d92489052d84",
+              "name": "Email",
+              "value": "ali@test.com",
+              "type": "string"
+            },
+            {
+              "id": "312df138-c257-4f27-8990-49d5d72d50d1",
+              "name": "Status",
+              "value": " Lead",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "e049826f-bbbf-4d6f-a32d-67e4b649a16a",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e42700db-1871-4c1d-9763-b9b481998839",
+              "name": "Name",
+              "value": "Sara",
+              "type": "string"
+            },
+            {
+              "id": "eb49c1af-e97d-4834-8d6b-1b58b94c3f16",
+              "name": "Email",
+              "value": "sara@test.com",
+              "type": "string"
+            },
+            {
+              "id": "69f2de61-53ce-4afd-98b7-f9e95d88505c",
+              "name": "VIP",
+              "value": "Yes",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        288,
+        240
+      ],
+      "id": "c592c3d8-64d5-4ed3-94dc-963285cb602e",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "Email",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "31d73ead-ea5f-4f66-9bca-203f42585108",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "34ac800b-47de-47f1-94eb-75ffef4d3440",
+  "meta": {
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "SAMAXEEst7InhiLp",
+  "tags": []
+}
