@@ -1,0 +1,126 @@
+{
+  "name": "Delayed Welcome & Follow-Up Email Flow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        0
+      ],
+      "id": "907cb098-fb39-4698-a767-8c50e53d5652",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "sendTo": "maosho677@gmail.com",
+        "subject": "Welcome!",
+        "message": "Thanks for signing up, we'll follow up soon.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -80,
+        -112
+      ],
+      "id": "774e8329-bf32-420f-b723-8925f0130e10",
+      "name": "Send a message",
+      "webhookId": "611723b5-721e-41fc-876f-089688f92f1b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "07NweeIScYroK5pW",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        96
+      ],
+      "id": "1bd74432-4bb2-4384-b601-6a38e67e47ba",
+      "name": "Wait",
+      "webhookId": "4f5ce2ac-db3b-4dec-84ac-f80b833a7c97"
+    },
+    {
+      "parameters": {
+        "sendTo": "maosho677@gmail.com",
+        "subject": "Just checking in!",
+        "message": "Following up — let us know if you have any questions.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        368,
+        -128
+      ],
+      "id": "cf079e58-ec64-4d7d-b297-5fec2b0137f9",
+      "name": "Send a message1",
+      "webhookId": "e8b518fb-00c8-4bce-ae38-86d98ebe47fc",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "07NweeIScYroK5pW",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4a8886b3-5511-4b24-a886-5ab952ca18d0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "Sja2ndyE0WoIon5J",
+  "tags": []
+}
