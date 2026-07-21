@@ -1,0 +1,451 @@
+{
+  "name": "Client Lead Capture & Auto-Response System",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Get in Touch",
+        "formDescription": "Tell us about your business needs and we'll get back to you shortly",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Full Name"
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Phone",
+              "placeholder": "+974 XXXX XXXX",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Preferred Contact Method",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Phone Call"
+                  },
+                  {
+                    "option": "WhatsApp"
+                  },
+                  {
+                    "option": "Email"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company Name"
+            },
+            {
+              "fieldLabel": "Message / Interest",
+              "fieldType": "textarea"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -32,
+        -112
+      ],
+      "id": "00300f28-bd1d-40c7-b116-d11595f8e144",
+      "name": "On form submission",
+      "webhookId": "9a062183-2f2c-44a3-a115-3e8bd8568574"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appV34xPnSlRP7fFZ",
+          "mode": "list",
+          "cachedResultName": "n8n Test Base",
+          "cachedResultUrl": "https://airtable.com/appV34xPnSlRP7fFZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblpkNwZa4TJ5ZHhA",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appV34xPnSlRP7fFZ/tblpkNwZa4TJ5ZHhA"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json[\"Full Name\"] }}",
+            "Email": "={{ $json.Email }}",
+            "Status": "New",
+            "Phone": "={{ $json.Phone }}",
+            "Preferred Contact Method": "={{ $json[\"Preferred Contact Method\"] }}",
+            "Company Name": "={{ $json[\"Company Name\"] }}",
+            "Message": "={{ $json[\"Message / Interest\"] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Closed",
+                  "value": "Closed"
+                },
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Contacted",
+                  "value": "Contacted"
+                },
+                {
+                  "name": "Lost",
+                  "value": "Lost"
+                },
+                {
+                  "name": "L",
+                  "value": "L"
+                },
+                {
+                  "name": "Qualified",
+                  "value": "Qualified"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Preferred Contact Method",
+              "displayName": "Preferred Contact Method",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Phone Call",
+                  "value": "Phone Call"
+                },
+                {
+                  "name": "WhatsApp",
+                  "value": "WhatsApp"
+                },
+                {
+                  "name": "Email",
+                  "value": "Email"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        -176
+      ],
+      "id": "97898541-f980-4cb3-86ec-905fa2b26d78",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NCPpAGFHAWe86IEz",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1umipIYag_bB4_E0Sqdq7ReIGsTNYJEGgF_d4MEXD-JU",
+          "mode": "list",
+          "cachedResultName": "Leads Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1umipIYag_bB4_E0Sqdq7ReIGsTNYJEGgF_d4MEXD-JU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1umipIYag_bB4_E0Sqdq7ReIGsTNYJEGgF_d4MEXD-JU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json[\"Full Name\"] }}",
+            "Email": "={{ $json.Email }}",
+            "Phone": "={{ $json.Phone }}",
+            "Preferred Contact Method": "={{ $json[\"Preferred Contact Method\"] }}",
+            "Company Name": "={{ $json[\"Company Name\"] }}",
+            "Message": "={{ $json[\"Message / Interest\"] }}",
+            "Status": "New"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Preferred Contact Method",
+              "displayName": "Preferred Contact Method",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        112,
+        -272
+      ],
+      "id": "cd2a7e10-bb8a-4b3a-bfb8-efac0db84a5c",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "p63YH5KLgyklIlGh",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "Thanks for reaching out!",
+        "emailType": "text",
+        "message": "=Hi {{ $json[\"Full Name\"] }},  Thank you for getting in touch! We've received your message and someone from our team will follow up with you shortly via your preferred contact method. \n\nHere's a quick summary of what you shared: Company: {{ $json[\"Company Name\"] }} Message: {{ $json[\"Message / Interest\"] }} \n\nWe appreciate your interest and look forward to connecting with you soon.  \n\nBest regards, The Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        -16
+      ],
+      "id": "d7ed4a1e-688e-452d-b74c-a3c388bf5f73",
+      "name": "Send a message",
+      "webhookId": "bac11829-057d-4f35-860b-aace47b8dd25",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "07NweeIScYroK5pW",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "leads",
+          "mode": "name"
+        },
+        "text": "=New Lead: {{ $json[\"Full Name\"] }} — {{ $json[\"Company Name\"] }} — prefers contact via {{ $json[\"Preferred Contact Method\"] }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        112,
+        96
+      ],
+      "id": "598ed417-03ab-4e0c-9c7d-0e45d93451ea",
+      "name": "Send a message1",
+      "webhookId": "bbffe4fa-bd1a-491a-bb07-604c8aad62ae",
+      "credentials": {
+        "slackApi": {
+          "id": "sNLB7yLWH8fERLmU",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7bba4d02-9d56-4774-be57-81b7054d3549",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "r3XtGDhaORBvfBCO",
+  "tags": []
+}

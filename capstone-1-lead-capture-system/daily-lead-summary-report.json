@@ -1,0 +1,184 @@
+{
+  "name": "Daily Lead Summary Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 18
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "615bc7f1-a5e5-40f8-bc5b-54282045def5",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appV34xPnSlRP7fFZ",
+          "mode": "list",
+          "cachedResultName": "n8n Test Base",
+          "cachedResultUrl": "https://airtable.com/appV34xPnSlRP7fFZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblpkNwZa4TJ5ZHhA",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appV34xPnSlRP7fFZ/tblpkNwZa4TJ5ZHhA"
+        },
+        "filterByFormula": "IS_SAME(CREATED_TIME(), TODAY(), 'day')",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "09641ff8-6aca-4448-8d06-5e16111ea584",
+      "name": "Search records",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NCPpAGFHAWe86IEz",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const leads = $input.all().filter(item => item.json && item.json.fields);\nconst count = leads.length;\n\nlet summaryLines = leads.map((item, index) => {\n  const name = item.json.fields[\"Name\"] || \"Unknown\";\n  const company = item.json.fields[\"Company Name\"] || \"N/A\";\n  const contactMethod = item.json.fields[\"Preferred Contact Method\"] || \"N/A\";\n  return `${index + 1}. ${name} — ${company} — prefers ${contactMethod}`;\n});\n\nconst leadWord = count === 1 ? \"lead\" : \"leads\";\n\nconst summaryText = count === 0\n  ? \"No new leads today.\"\n  : summaryLines.join(\"\\n\");\n\nreturn [\n  {\n    json: {\n      leadCount: count,\n      leadWord: leadWord,\n      summaryText: summaryText\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        -144
+      ],
+      "id": "ffce0eaa-ebf6-473c-8354-0b639ceb5b7a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "maosho677@gmail.com",
+        "subject": "Daily Lead Summary",
+        "emailType": "text",
+        "message": "=Leads today: {{ $json.leadCount }} {{ $json.leadWord }}\n{{ $json.summaryText }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        496,
+        -192
+      ],
+      "id": "5c3fe2f3-e68e-4a52-9bb9-5a4f70a8fd3c",
+      "name": "Send a message",
+      "webhookId": "0422c66a-0dfa-470f-85f9-0bddc52b6f96",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "07NweeIScYroK5pW",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "leads",
+          "mode": "name"
+        },
+        "text": "=New Lead Summary —  {{ $json.leadCount }} {{ $json.leadWord }} today\n{{ $json.summaryText }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        512,
+        80
+      ],
+      "id": "20e978e3-077b-4f99-ad2a-89a147421e2b",
+      "name": "Send a message1",
+      "webhookId": "27eb08af-b882-4025-820e-c1f1bc914868",
+      "credentials": {
+        "slackApi": {
+          "id": "sNLB7yLWH8fERLmU",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "01295752-7060-413e-ac9a-ace8b346c149",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "LCFttUdyBFSUMwxa",
+  "tags": []
+}
