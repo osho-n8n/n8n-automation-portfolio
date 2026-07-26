@@ -1,0 +1,56 @@
+{
+  "name": "Practice - Array Operations",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a90d912e-7807-4915-8af9-f95fa4c11573",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "const leads = [\n  { name: \"Ali Hassan\", leadScore: 95, leadTier: \"Hot\" },\n  { name: \"Sara Khan\", leadScore: 55, leadTier: \"Warm\" },\n  { name: \"Omar Yusuf\", leadScore: 25, leadTier: \"Standard\" },\n  { name: \"Fatima Noor\", leadScore: 85, leadTier: \"Hot\" },\n  { name: \"Yusuf Al-Amin\", leadScore: 60, leadTier: \"Warm\" }\n];\n\n// 1. FILTER — only Warm leads\nconst warmLeads = leads.filter(lead => lead.leadTier === \"Warm\");\n\n// 2. SORT — ascending by score (lowest first)\nconst sortedAscending = [...leads].sort((a, b) => a.leadScore - b.leadScore);\n\n// 3. REDUCE — total score of Warm leads only\nconst warmTotal = warmLeads.reduce((sum, lead) => sum + lead.leadScore, 0);\n\n// 4. MAP — readable summary strings\nconst summaries = leads.map(lead => \n  `${lead.name} is ${lead.leadTier} tier with ${lead.leadScore} points`\n);\n\nreturn [{\n  json: {\n    warmLeads,\n    sortedAscending,\n    warmTotal,\n    summaries\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "35ca3329-93db-4240-a52d-c44c0964f314",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "cf1cf4e4-6db9-49e7-ac45-8009c5a480a1",
+  "meta": {
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "WbLe0CAKw3xPLcqe",
+  "tags": []
+}

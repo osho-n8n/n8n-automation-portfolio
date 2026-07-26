@@ -1,0 +1,127 @@
+{
+  "name": "Practice - JSON Transformation",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        -16
+      ],
+      "id": "a2e25452-199a-42ec-8990-c22392144d5b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inquiries = [\n  {\n    inquiryId: \"INQ-001\",\n    client: {\n      name: \"Ahmed Al-Sayed\",\n      email: \"ahmed.alsayed@example.com\",\n      phone: \"+974 5555 1001\"\n    },\n    property: {\n      title: \"3BR Apartment - West Bay\",\n      area: \"West Bay\",\n      askingPrice: 1450000,\n      bedrooms: 3\n    },\n    preferences: {\n      contactMethod: \"WhatsApp\",\n      urgency: \"High\"\n    }\n  },\n  {\n    inquiryId: \"INQ-002\",\n    client: {\n      name: \"Layla Hassan\",\n      email: \"layla.hassan@example.com\",\n      phone: \"+974 5555 1002\"\n    },\n    property: {\n      title: \"2BR Apartment - The Pearl\",\n      area: \"The Pearl\",\n      askingPrice: 1850000,\n      bedrooms: 2\n    },\n    preferences: {\n      contactMethod: \"Email\",\n      urgency: \"Medium\"\n    }\n  },\n  {\n    inquiryId: \"INQ-003\",\n    client: {\n      name: \"Yousef Al-Kaabi\",\n      email: \"yousef.alkaabi@example.com\",\n      phone: \"+974 5555 1003\"\n    },\n    property: {\n      title: \"4BR Villa - Al Waab\",\n      area: \"Al Waab\",\n      askingPrice: 3200000,\n      bedrooms: 4\n    },\n    preferences: {\n      contactMethod: \"Phone\",\n      urgency: \"High\"\n    }\n  }\n];\n\nreturn inquiries.map(inquiry => {\n  return { json: inquiry };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        -128
+      ],
+      "id": "30313e6b-4c68-4080-b090-cc296b0f8734",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst flattened = items.map(item => {\n  const inquiry = item.json;\n  return {\n    json: {\n      inquiryId: inquiry.inquiryId,\n      clientName: inquiry.client.name,\n      clientEmail: inquiry.client.email,\n      clientPhone: inquiry.client.phone,\n      propertyTitle: inquiry.property.title,\n      propertyArea: inquiry.property.area,\n      askingPrice: inquiry.property.askingPrice,\n      bedrooms: inquiry.property.bedrooms,\n      contactMethod: inquiry.preferences.contactMethod,\n      urgency: inquiry.preferences.urgency\n    }\n  };\n});\n\nreturn flattened;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        48
+      ],
+      "id": "8587960e-e854-4634-9d68-3637387c529e",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst summaries = items.map(item => {\n  const inquiry = item.json;\n  const message = `📩 New Inquiry: ${inquiry.clientName}\n🏠 ${inquiry.propertyTitle} (${inquiry.propertyArea})\n💰 Asking Price: QAR ${inquiry.askingPrice.toLocaleString()}\n📞 Prefers: ${inquiry.contactMethod} | Urgency: ${inquiry.urgency}`;\n\n  return { json: { message } };\n});\n\nreturn summaries;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        48
+      ],
+      "id": "ccc58f2a-79c4-4f13-9962-6bc071e8ff47",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconsole.log(\"DEBUG - number of items:\", items.length);\nconsole.log(\"DEBUG - first item json:\", JSON.stringify(items[0].json));\n\nconst totalValue = items.reduce((sum, item) => {\n  console.log(\"DEBUG - askingPrice:\", item.json.askingPrice);\n  return sum + item.json.askingPrice;\n}, 0);\n\nconst averageValue = totalValue / items.length;\n\nconst report = {\n  totalInquiries: items.length,\n  totalAskingValue: totalValue,\n  averageAskingPrice: Math.round(averageValue)\n};\n\nreturn [{ json: report }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        -144
+      ],
+      "id": "57379c06-5332-497b-bc97-284998957881",
+      "name": "Code in JavaScript3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a15f33d7-0cfc-45a5-a2d5-f4e57ec3b2f3",
+  "meta": {
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "BwoBSIfD46tsuu53",
+  "tags": []
+}
