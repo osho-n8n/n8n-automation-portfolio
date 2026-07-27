@@ -1,0 +1,55 @@
+{
+  "name": "Practice - Multi-Item Output",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9ba26ea5-3987-4488-9a6a-5f75636351c3",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = {\n  name: \"Fatima Al-Kaabi\",\n  phone: \"+974 5555 1234\",\n  email: \"fatima.k@example.com\",\n  budget: 1500000,\n  propertyTypes: [\"apartment\", \"villa\"],\n  contactMethods: [\"whatsapp\", \"email\"]\n};\n\nconst outputItems = [];\n\ninputData.propertyTypes.forEach(property => {\n  inputData.contactMethods.forEach(method => {\n    outputItems.push({\n      json: {\n        name: inputData.name,\n        phone: inputData.phone,\n        email: inputData.email,\n        budget: inputData.budget,\n        interestedIn: property,\n        preferredContact: method\n      }\n    });\n  });\n});\n\nreturn outputItems;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "e8f6f53e-104f-498d-8c97-6317f289ab58",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5e040549-06c4-4170-9a9e-6b09367f9431",
+  "meta": {
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "5j0jlNnvmwbKK8Bm",
+  "tags": []
+}
