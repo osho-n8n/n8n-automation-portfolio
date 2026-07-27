@@ -1,0 +1,90 @@
+{
+  "name": "Practice - Date Time Logic",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "28705b8a-cefd-42a7-8790-d7a2af31f8f4",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7be64943-df86-47cc-bdc5-af218a36b4f1",
+              "name": "inquiryDate",
+              "value": "2026-07-27T10:00:00.000Z",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "448cd439-05cc-4f79-aeb5-5ca54c511012",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const inquiryDate = DateTime.fromISO($json.inquiryDate);\nconst now = DateTime.now();\nconst daysPassed = now.diff(inquiryDate, 'days').days;\n\nlet urgencyTier;\nif (daysPassed <= 1) {\n  urgencyTier = \"Fresh\";\n} else if (daysPassed <= 3) {\n  urgencyTier = \"Follow Up Soon\";\n} else {\n  urgencyTier = \"Urgent - Lead Going Cold\";\n}\n\nconst dohaNow = DateTime.now().setZone('Asia/Qatar');\nconst currentHour = dohaNow.hour;\nconst isBusinessHours = currentHour >= 9 && currentHour < 18;\n\nreturn {\n  json: {\n    inquiryDate: $json.inquiryDate,\n    daysPassed: daysPassed,\n    urgencyTier: urgencyTier,\n    currentHourDoha: currentHour,\n    isBusinessHours: isBusinessHours\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "9cec2a57-2887-47eb-8d41-9dfbee69d26e",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7613d01e-115a-454e-ae12-93f3ea21c7aa",
+  "meta": {
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "98fYKGyxMiRWTwJd",
+  "tags": []
+}
