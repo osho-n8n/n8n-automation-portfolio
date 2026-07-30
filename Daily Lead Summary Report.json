@@ -1,0 +1,197 @@
+{
+  "name": "Daily Lead Summary Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 18
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "615bc7f1-a5e5-40f8-bc5b-54282045def5",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appV34xPnSlRP7fFZ",
+          "mode": "list",
+          "cachedResultName": "n8n Test Base",
+          "cachedResultUrl": "https://airtable.com/appV34xPnSlRP7fFZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblpkNwZa4TJ5ZHhA",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appV34xPnSlRP7fFZ/tblpkNwZa4TJ5ZHhA"
+        },
+        "filterByFormula": "IS_SAME(CREATED_TIME(), TODAY(), 'day')",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "09641ff8-6aca-4448-8d06-5e16111ea584",
+      "name": "Search records",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NCPpAGFHAWe86IEz",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const leads = $input.all().filter(item => item.json && item.json.fields);\nconst count = leads.length;const hasHotLead = leads.some(item => item.json.fields[\"Lead Tier\"] === \"Hot\");\n\nlet summaryLines = leads.map((item, index) => {\n  const name = item.json.fields[\"Name\"] || \"Unknown\";\n  const company = item.json.fields[\"Company Name\"] || \"N/A\";\n  const contactMethod = item.json.fields[\"Preferred Contact Method\"] || \"N/A\";\n  return `${index + 1}. ${name} — ${company} — prefers ${contactMethod}`;\n});\n\nconst leadWord = count === 1 ? \"lead\" : \"leads\";\n\nconst summaryText = count === 0\n  ? \"No new leads today.\"\n  : summaryLines.join(\"\\n\");\n\nreturn [\n  {\n    json: {\n      leadCount: count,\n      leadWord: leadWord,\n      summaryText: summaryText,\n        priority: hasHotLead ? \"urgent\" : \"normal\",\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        -144
+      ],
+      "id": "ffce0eaa-ebf6-473c-8354-0b639ceb5b7a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "mxQBCj10eV8g7evA",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/mxQBCj10eV8g7evA",
+          "cachedResultName": "Sub - Send Notification"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message": "={{ $json.summaryText }}",
+            "channel": "leads",
+            "priority": "={{ $json.priority }}",
+            "recipientEmail": "maosho677@gmail.com"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "recipientEmail",
+              "displayName": "recipientEmail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        528,
+        -144
+      ],
+      "id": "35cb29e8-0f38-4447-b9a7-fc237518e61c",
+      "name": "Call 'Sub - Send Notification'"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Call 'Sub - Send Notification'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "14d3477e-e3ad-43e8-8923-c8694dae38e7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "LCFttUdyBFSUMwxa",
+  "tags": []
+}
