@@ -291,7 +291,7 @@
       "typeVersion": 2.2,
       "position": [
         304,
-        -176
+        -160
       ],
       "id": "97898541-f980-4cb3-86ec-905fa2b26d78",
       "name": "Create a record",
@@ -299,144 +299,6 @@
         "airtableTokenApi": {
           "id": "NCPpAGFHAWe86IEz",
           "name": "Airtable Personal Access Token account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "append",
-        "documentId": {
-          "__rl": true,
-          "value": "1umipIYag_bB4_E0Sqdq7ReIGsTNYJEGgF_d4MEXD-JU",
-          "mode": "list",
-          "cachedResultName": "Leads Tracker",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1umipIYag_bB4_E0Sqdq7ReIGsTNYJEGgF_d4MEXD-JU/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Sheet1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1umipIYag_bB4_E0Sqdq7ReIGsTNYJEGgF_d4MEXD-JU/edit#gid=0"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "Name": "={{ $json[\"Full Name\"] }}",
-            "Email": "={{ $json.Email }}",
-            "Phone": "={{ $json.Phone }}",
-            "Preferred Contact Method": "={{ $json[\"Preferred Contact Method\"] }}",
-            "Company Name": "={{ $json[\"Company Name\"] }}",
-            "Message": "={{ $json[\"Message / Interest\"] }}",
-            "Status": "New",
-            "Lead Score": "={{ $json.leadScore }}",
-            "Lead Tier.": "={{ $json.leadTier }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "Name",
-              "displayName": "Name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Email",
-              "displayName": "Email",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Phone",
-              "displayName": "Phone",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Preferred Contact Method",
-              "displayName": "Preferred Contact Method",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Company Name",
-              "displayName": "Company Name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Message",
-              "displayName": "Message",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Status",
-              "displayName": "Status",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Lead Score",
-              "displayName": "Lead Score",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Lead Tier.",
-              "displayName": "Lead Tier.",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {
-          "cellFormat": "RAW"
-        }
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        112,
-        -272
-      ],
-      "id": "cd2a7e10-bb8a-4b3a-bfb8-efac0db84a5c",
-      "name": "Append row in sheet",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "p63YH5KLgyklIlGh",
-          "name": "Google Sheets account"
         }
       }
     },
@@ -551,6 +413,58 @@
       ],
       "id": "913b12dc-06ac-469d-b2e5-8a99edfe0f08",
       "name": "Call 'Sub - Send Notification'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "RzHMeNO39NlwMmfw",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/RzHMeNO39NlwMmfw",
+          "cachedResultName": "Sub - Log to Sheets"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "sheetName": "Leads",
+            "rowData": "={{ {\n  \"Name\": $json[\"Full Name\"],\n  \"Email\": $json[\"Email\"],\n  \"Phone\": $json[\"Phone\"],\n  \"Preferred Contact Method\": $json[\"Preferred Contact Method\"],\n  \"Company Name\": $json[\"Company Name\"],\n  \"Message\": $json[\"Message / Interest\"],\n  \"Status\": \"New\",\n  \"Lead Score\": $json[\"leadScore\"],\n  \"Lead Tier.\": $json[\"leadTier\"]\n} }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "sheetName",
+              "displayName": "sheetName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "rowData",
+              "displayName": "rowData",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        128,
+        -304
+      ],
+      "id": "15e56572-b905-4f5e-9b6f-f430626f1761",
+      "name": "Call 'Sub - Log to Sheets'"
     }
   ],
   "pinData": {},
@@ -566,19 +480,9 @@
         ]
       ]
     },
-    "Append row in sheet": {
-      "main": [
-        []
-      ]
-    },
     "Code in JavaScript": {
       "main": [
         [
-          {
-            "node": "Append row in sheet",
-            "type": "main",
-            "index": 0
-          },
           {
             "node": "Create a record",
             "type": "main",
@@ -591,6 +495,11 @@
           },
           {
             "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Call 'Sub - Log to Sheets'",
             "type": "main",
             "index": 0
           }
@@ -609,7 +518,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "eee9b5ea-a000-4b67-902c-569beb860b1c",
+  "versionId": "6480605e-8afb-47c0-9ae4-50468a83f3fc",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
