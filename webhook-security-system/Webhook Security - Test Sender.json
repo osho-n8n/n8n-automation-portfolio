@@ -1,0 +1,102 @@
+{
+  "name": "Webhook Security - Test Sender",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7289243e-7eb4-44ab-ac7b-9756a4085b89",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://outpour-frostlike-graves.ngrok-free.dev/webhook-test/secure-endpoint",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-webhook-token",
+              "value": "=\t{{ $json.token }}"
+            },
+            {
+              "name": "x-webhook-timestamp",
+              "value": "={{ $json.timestamp }}"
+            },
+            {
+              "name": "x-webhook-signature",
+              "value": "={{ $json.signature }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "b4d2f048-1378-46bf-abda-cb23fe48746b",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const SHARED_SECRET = \"my-super-secret-key-2026\";\nconst crypto = require('crypto'); const timestamp = Math.floor(Date.now() / 1000).toString();;\nconst body = { leadName: \"Test Lead\", email: \"test@example.com\" };\n\nconst payloadString = JSON.stringify(body) + timestamp;\nconst signature = crypto\n  .createHmac('sha256', SHARED_SECRET)\n  .update(payloadString)\n  .digest('hex');\n\nreturn {\n  token:SHARED_SECRET,\n  timestamp: timestamp,\n  signature: signature,\n  body: body\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "698d7522-accf-42ec-adb8-21c2712087d1",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "5eacaae2-ead0-4a29-a677-02e201496f7d",
+  "meta": {
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "oEQQCUkhRDJn2W3p",
+  "tags": []
+}

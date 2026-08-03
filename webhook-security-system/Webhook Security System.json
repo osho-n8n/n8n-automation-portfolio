@@ -1,0 +1,159 @@
+{
+  "name": "Webhook Security System",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "secure-endpoint",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -224,
+        16
+      ],
+      "id": "9452081e-ca60-4ec6-b6f9-4b706e6c8911",
+      "name": "Webhook",
+      "webhookId": "7827019b-1bff-4b8b-80c9-4a8b59549370"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ---- CONFIG (our shared secret with the \"client system\") ----\nconst SHARED_SECRET = \"my-super-secret-key-2026\"; // we'll change this to something stronger later\nconst MAX_AGE_SECONDS = 300; // 5 minutes — reject anything older\n\n// ---- GET INCOMING DATA ----\nconst headers = $input.item.json.headers;\nconst body = $input.item.json.body;\n\nconst receivedToken = headers['x-webhook-token'];\nconst receivedTimestamp = headers['x-webhook-timestamp'];\nconst receivedSignature = headers['x-webhook-signature'];\n\nlet isValid = true;\nlet reason = \"\";\n\n// ---- CHECK 1: TOKEN ----\nif (receivedToken !== SHARED_SECRET) {\n  isValid = false;\n  reason = \"Invalid or missing token\";\n}\n\n// ---- CHECK 2: TIMESTAMP (replay protection) ----\nif (isValid) {\n  const now = Math.floor(Date.now() / 1000);\n  const requestTime = parseInt(receivedTimestamp, 10);\n  const age = now - requestTime;\n\n  if (isNaN(requestTime) || age > MAX_AGE_SECONDS || age < 0) {\n    isValid = false;\n    reason = \"Request timestamp too old or invalid (possible replay attack)\";\n  }\n}\n\n// ---- CHECK 3: SIGNATURE ----\nif (isValid) {\n  const crypto = require('crypto');\n  const payloadString = JSON.stringify(body) + receivedTimestamp;\n  const expectedSignature = crypto\n    .createHmac('sha256', SHARED_SECRET)\n    .update(payloadString)\n    .digest('hex');\n\n  if (receivedSignature !== expectedSignature) {\n    isValid = false;\n    reason = \"Signature mismatch (data may have been tampered with)\";\n  }\n}\n\n// ---- OUTPUT ----\nreturn {\n  isValid,\n  reason: reason || \"All checks passed\",\n  originalBody: body\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        16
+      ],
+      "id": "9968149d-885b-4baf-a887-96b0efb3929e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ae98d8f1-299b-41c8-af70-f19b55d9b109",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        160,
+        16
+      ],
+      "id": "8b2b84f4-f771-435e-91c8-73d610e989d7",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n     \"status\": \"success\",\n     \"message\": \"Request verified\"\n   }",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        368,
+        -80
+      ],
+      "id": "6d69ba4f-86cc-4e5a-b958-3dfe9f24bc5c",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n       \"status\": \"error\",\n       \"message\": \"{{ $json.reason }}\"\n     }",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        368,
+        112
+      ],
+      "id": "d11f6061-9751-4df2-a88f-643251efc7e0",
+      "name": "Respond to Webhook1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "6f2361eb-91cb-4e27-b4de-970bb84410c1",
+  "meta": {
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "MtRdMCXFXujrmaFg",
+  "tags": []
+}
