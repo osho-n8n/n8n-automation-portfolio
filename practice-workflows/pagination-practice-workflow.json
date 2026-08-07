@@ -1,0 +1,227 @@
+{
+  "name": "Pagination Practice - Rick and Morty API",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        -64
+      ],
+      "id": "ffe41405-62e2-4925-8317-6c1aa9e1d866",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://rickandmortyapi.com/api/character",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -208,
+        -80
+      ],
+      "id": "e8b85b18-88c7-4a58-912e-8b4185bdd691",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "99c77063-be46-48c1-9763-731664562d4d",
+              "leftValue": "={{ $json.info.next }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "18035e5e-e202-4e50-a45e-265c9a8e90a3",
+              "leftValue": "={{ $json.info.next.match(/page=(\\d+)/)[1].toNumber() }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -16,
+        128
+      ],
+      "id": "e7eb53b5-1054-4e5c-9663-b76cafe13149",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.info.next }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        160,
+        0
+      ],
+      "id": "973534c9-a712-4d52-8106-de1ca2c216c4",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        272,
+        160
+      ],
+      "id": "76b81a3c-348f-423f-8d36-a3a5e1fd45ef",
+      "name": "Wait",
+      "webhookId": "b8faf8b4-3c9f-48ca-8c0f-e4768752ec5e"
+    },
+    {
+      "parameters": {
+        "jsCode": "const staticData = $getWorkflowStaticData('global');\n\nif (!staticData.allResults) {\n  staticData.allResults = [];\n}\n\nstaticData.allResults.push(...$json.results);\n\nconst isLastPage = !$json.info.next;\n\nreturn [{\n  json: {\n    info: $json.info,\n    isLastPage: isLastPage,\n    totalCollectedSoFar: staticData.allResults.length,\n    allResultsSoFar: staticData.allResults\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -16
+      ],
+      "id": "64e5838a-6f7a-4bc3-922b-c2f58a6cd2a1",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a31f4468-8f8f-4d12-a2c4-afa2925f1fb0",
+              "name": "allFinalResults",
+              "value": "={{ $json.allResultsSoFar }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        272
+      ],
+      "id": "9dbb8e9d-269a-478f-9ec5-267623ec8972",
+      "name": "allFinalResults"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "allFinalResults",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a1b3e1e1-bb15-4f1f-92f0-333dac418f1e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "9JJzvZkk1MaLyzgw",
+  "tags": []
+}
