@@ -1,0 +1,310 @@
+{
+  "name": "API Rate Limit Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        -160
+      ],
+      "id": "1a7dac92-4208-450f-b54c-dc6870ab29f2",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://rickandmortyapi.com/api/character",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -272,
+        48
+      ],
+      "id": "2c26a834-9da7-4979-91df-9e0eaf13864b",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9633570f-1888-4c7f-9c39-f59d4fb7d903",
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 429,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -48,
+        96
+      ],
+      "id": "fede6ee7-88f7-473a-926a-9fc8330ec19c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "033e3b34-929a-4a65-8eef-48ddff8c6a4b",
+              "name": "apiCallStatus",
+              "value": "Success - No rate limit hit",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        96
+      ],
+      "id": "93060ba8-47d9-43e9-b495-9a9d3a68df94",
+      "name": "Success - Continue Processing"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        432,
+        80
+      ],
+      "id": "3a09aa93-3071-4f08-b777-1c773c7a2449",
+      "name": "Wait",
+      "webhookId": "948dad6f-eb5b-4d1d-8e26-00f714674f1a"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Try to get the retry count from the last time Retry Limit Check ran.\n// If this is the very first attempt, that node hasn't run yet, so we default to 0.\nlet currentRetries = 0;\n\ntry {\n  currentRetries = $('Retry Limit Check').item.json.retryCount;\n} catch (error) {\n  currentRetries = 0;\n}\n\nreturn {\n  ...$json,\n  retryCount: currentRetries + 1\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        -192
+      ],
+      "id": "f4896ea1-a920-4f5e-9ca2-d1096942a386",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "87e69722-18da-4606-a348-f5eaeef1bbad",
+              "leftValue": "={{ $json.retryCount }}",
+              "rightValue": 3,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        144,
+        -176
+      ],
+      "id": "6ccc9ed8-41b0-4d45-beaa-5ddd2b630cf6",
+      "name": "Retry Limit Check"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9a7642cf-2ac3-4f35-809b-230c7782c127",
+              "name": "apiCallStatus",
+              "value": "Failed - Exceeded max retries for rate limit",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        320,
+        -208
+      ],
+      "id": "847f7667-8021-47b2-b3c5-6d1db2558fc0",
+      "name": "Failed - Rate Limit Exceeded"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "leads"
+        },
+        "text": "⚠️ API Rate Limit Alert: Failed after 3 retry attempts. The API is still rate-limiting requests. Please check the connection or increase wait time.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        448,
+        -176
+      ],
+      "id": "bf5bda22-1034-4198-8794-77c28e772e96",
+      "name": "Send a message",
+      "webhookId": "b4f0d5fe-9cfa-4467-818a-3a7f91e74982",
+      "credentials": {
+        "slackApi": {
+          "id": "sNLB7yLWH8fERLmU",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Success - Continue Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Retry Limit Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Limit Check": {
+      "main": [
+        [
+          {
+            "node": "Failed - Rate Limit Exceeded",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Failed - Rate Limit Exceeded": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "77010019-76a3-4eda-b495-7abd89384241",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "aiWixT3A2TI4M5Ql",
+  "tags": []
+}
