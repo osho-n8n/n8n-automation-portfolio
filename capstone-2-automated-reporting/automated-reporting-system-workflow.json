@@ -1,0 +1,484 @@
+{
+  "name": "Automated Reporting System",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -528,
+        0
+      ],
+      "id": "21e687b5-ab35-47ba-bece-45245695a500",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appV34xPnSlRP7fFZ",
+          "mode": "list",
+          "cachedResultName": "n8n Test Base",
+          "cachedResultUrl": "https://airtable.com/appV34xPnSlRP7fFZ"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblpkNwZa4TJ5ZHhA",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appV34xPnSlRP7fFZ/tblpkNwZa4TJ5ZHhA"
+        },
+        "filterByFormula": "IS_AFTER({Submission Date}, DATEADD(TODAY(), -7, 'days'))",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -384,
+        0
+      ],
+      "id": "58891aff-fdbe-4849-9743-333d7ea4e1d6",
+      "name": "Search records",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NCPpAGFHAWe86IEz",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all input items from Airtable Search\nconst rawItems = $input.all();\n// Filter out any empty/invalid items (zero-leads placeholder)\nconst leads = rawItems.filter(item => item.json.fields && item.json.fields['Name']);\n// Count total leads\nconst totalLeads = leads.length;\n// Count leads by tier\nconst hotLeads = leads.filter(item => item.json.fields['Lead Tier'] === 'Hot').length;\nconst warmLeads = leads.filter(item => item.json.fields['Lead Tier'] === 'Warm').length;\nconst standardLeads = leads.filter(item => item.json.fields['Lead Tier'] === 'Standard').length;\n// Average lead score, guarded against divide-by-zero\nconst totalScore = leads.reduce((sum, item) => sum + item.json.fields['Lead Score'], 0);\nconst averageScore = totalLeads > 0 ? Math.round(totalScore / totalLeads) : 0;\n// Lead names list\nconst leadNames = totalLeads > 0\n  ? leads.map(item => item.json.fields['Name']).join(', ')\n  : 'No leads this week';\n// Top lead (highest score)\nconst topLead = totalLeads > 0\n  ? leads.reduce((best, item) =>\n      item.json.fields['Lead Score'] > best.json.fields['Lead Score'] ? item : best\n    )\n  : null;\nconst topLeadName = topLead ? topLead.json.fields['Name'] : '';\nconst topLeadScore = topLead ? topLead.json.fields['Lead Score'] : 0;\n// Hot lead percentage\nconst hotLeadPercentage = totalLeads > 0 ? Math.round((hotLeads / totalLeads) * 100) : 0;\n// Busiest day of the week (using Luxon for correct timezone handling)\nlet busiestDay = '';\nif (totalLeads > 0) {\n  const dayNames = leads.map(item => {\n    return DateTime.fromISO(item.json.fields['Submission Date'])\n      .setZone('Asia/Qatar')\n      .toFormat('cccc');\n  });\n  const dayCounts = dayNames.reduce((counts, day) => {\n    counts[day] = (counts[day] || 0) + 1;\n    return counts;\n  }, {});\n  // Also track the earliest actual date for each weekday name, so we can sort chronologically\n  const dayDates = {};\n  leads.forEach(item => {\n    const dt = DateTime.fromISO(item.json.fields['Submission Date']).setZone('Asia/Qatar');\n    const dayName = dt.toFormat('cccc');\n    const dayValue = dt.toMillis();\n    if (!dayDates[dayName] || dayValue < dayDates[dayName]) {\n      dayDates[dayName] = dayValue;\n    }\n  });\n  // Find the highest lead count across all days\n  const maxCount = Math.max(...Object.values(dayCounts));\n  // Grab EVERY day that hit that max count (handles ties, not just the first match)\n  // then sort them chronologically using the actual date, not just discovery order\n  const busiestDays = Object.keys(dayCounts)\n    .filter(day => dayCounts[day] === maxCount)\n    .sort((a, b) => dayDates[a] - dayDates[b]);\n  // Join into a clean string: \"Monday\" alone, or \"Monday & Wednesday\" if tied (always in date order)\n  busiestDay = busiestDays.join(' & ');\n}\n// Return one summary object\nreturn [\n  {\n    json: {\n      totalLeads,\n      hotLeads,\n      warmLeads,\n      standardLeads,\n      averageScore,\n      leadNames,\n      reportDate: new Date().toLocaleDateString(),\n      hasLeads: totalLeads > 0,\n      topLeadName,\n      topLeadScore,\n      hotLeadPercentage,\n      busiestDay\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "a04e89b5-66b7-4c7d-a1bc-7dd1963f1055",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "maosho677@gmail.com",
+        "subject": "=Weekly Leads Report - {{ $json.reportDate }}",
+        "emailType": "text",
+        "message": "={{ $json.hasLeads ? 'Total Leads: ' + $json.totalLeads + '\\nHot Leads: ' + $json.hotLeads + ' (' + $json.hotLeadPercentage + '%)' + '\\nWarm Leads: ' + $json.warmLeads + '\\nStandard Leads: ' + $json.standardLeads + '\\n\\nAverage Lead Score: ' + $json.averageScore + '\\nTop Lead: ' + $json.topLeadName + ' (Score: ' + $json.topLeadScore + ')' + '\\nBusiest Day: ' + $json.busiestDay + '\\n\\nLeads: ' + $json.leadNames : 'No new leads came in this week. We will continue monitoring and will notify you as soon as new leads arrive.' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -48,
+        -144
+      ],
+      "id": "361c814c-66fb-447f-be8f-eb3164a78679",
+      "name": "Send a message",
+      "webhookId": "7e65d86a-4a77-4d61-a50b-947d2fba8078",
+      "retryOnFail": false,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "07NweeIScYroK5pW",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "leads",
+          "mode": "name"
+        },
+        "text": "={{ $json.hasLeads ? '📊 Weekly Leads Report - ' + $json.reportDate + '\\n\\nTotal: ' + $json.totalLeads + ' leads | 🔥 ' + $json.hotLeads + ' Hot (' + $json.hotLeadPercentage + '%) | 🌤️ ' + $json.warmLeads + ' Warm | ⭐ ' + $json.standardLeads + ' Standard\\n🏆 Top Lead: ' + $json.topLeadName + ' (' + $json.topLeadScore + ')\\n📅 Busiest Day: ' + $json.busiestDay + '\\nAvg Score: ' + $json.averageScore : '📊 Weekly Leads Report - ' + $json.reportDate + '\\n\\nNo new leads this week.' }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        -32,
+        112
+      ],
+      "id": "a674e896-f318-4844-96cd-1be1ba878d07",
+      "name": "Send a message1",
+      "webhookId": "ceadc27a-39fc-4c27-b208-001003306514",
+      "credentials": {
+        "slackApi": {
+          "id": "sNLB7yLWH8fERLmU",
+          "name": "Slack account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "mxQBCj10eV8g7evA",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/mxQBCj10eV8g7evA",
+          "cachedResultName": "Sub - Send Notification"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message": "==⚠️ Report failed to send via Gmail. Error: {{ $json.error.message }}",
+            "channel": "leads",
+            "recipientEmail": "maosho677@gmail.com",
+            "priority": "==high"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "recipientEmail",
+              "displayName": "recipientEmail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        176,
+        -128
+      ],
+      "id": "4bee5741-dd6f-4a94-96db-ebd386d03990",
+      "name": "Call 'Sub - Send Notification'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "RzHMeNO39NlwMmfw",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/RzHMeNO39NlwMmfw",
+          "cachedResultName": "Sub - Log to Sheets"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "sheetName": "=Error Log",
+            "rowData": "={{ { \"timestamp\": $now.setZone('Asia/Qatar').toFormat('yyyy-MM-dd HH:mm:ss'), \"failedNode\": \"Gmail - Send a message\", \"errorMessage\": $('Send a message').item.json.error } }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "sheetName",
+              "displayName": "sheetName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "rowData",
+              "displayName": "rowData",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        304,
+        -128
+      ],
+      "id": "4485481a-57af-4492-a7b1-0aede254efb6",
+      "name": "Call 'Sub - Log to Sheets'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "mxQBCj10eV8g7evA",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/mxQBCj10eV8g7evA",
+          "cachedResultName": "Sub - Send Notification"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message": "==⚠️ Report failed to send via Slack. Error: {{ $json.error.message }}",
+            "channel": "=leads",
+            "priority": "=urgent",
+            "recipientEmail": "maosho677@gmail.com"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "recipientEmail",
+              "displayName": "recipientEmail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        192,
+        128
+      ],
+      "id": "81f5449a-b1b2-4281-a58e-707f0cf1ccf5",
+      "name": "Call 'Sub - Send Notification'1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "RzHMeNO39NlwMmfw",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/RzHMeNO39NlwMmfw",
+          "cachedResultName": "Sub - Log to Sheets"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "sheetName": "=Error Log",
+            "rowData": "={{ { \"timestamp\": $now.setZone('Asia/Qatar').toFormat('yyyy-MM-dd HH:mm:ss'), \"failedNode\": \"Slack - Send a message1\", \"errorMessage\": $('Send a message1').item.json.error } }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "sheetName",
+              "displayName": "sheetName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "rowData",
+              "displayName": "rowData",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        320,
+        128
+      ],
+      "id": "b55d3d55-9468-4bfc-8ca4-1832edd95369",
+      "name": "Call 'Sub - Log to Sheets'1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Call 'Sub - Send Notification'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Sub - Send Notification'": {
+      "main": [
+        [
+          {
+            "node": "Call 'Sub - Log to Sheets'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Call 'Sub - Send Notification'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Sub - Send Notification'1": {
+      "main": [
+        [
+          {
+            "node": "Call 'Sub - Log to Sheets'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9cb0393e-236b-4185-8c1f-27f8409b82dd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "19x49bFiAhnheSFY",
+  "tags": []
+}
