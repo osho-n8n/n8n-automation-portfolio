@@ -1,0 +1,110 @@
+{
+  "name": "Customer Message Summarizer",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        16
+      ],
+      "id": "114ff919-f587-4648-873a-2f3b51f2e180",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "db0a4e31-3984-4d67-87b3-b022539140b2",
+              "name": "longText",
+              "value": "hii so basically i messaged before also but no reply idk why anyway i need help my ac not working since 2 days its really hot inside also the kitchen sink leaking a bit not too bad but yes and also can someone come check the wifi router keeps disconnecting at night only, oh and one more thing rent due date can it be moved to 5th instead of 1st bcz salary comes late sometimes, pls reply asap this is urgent especially the ac thing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        -112
+      ],
+      "id": "c891ddf2-cfb5-4230-8506-0820d1c12ad2",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {}
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        192,
+        32
+      ],
+      "id": "469f4fd8-d743-4bd9-bea2-62cbb6d305aa",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5h2Mc5i2xS3kQX0O",
+          "name": "OpenAI account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "3e55dab9-8741-4804-9679-aa9453339f31",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "TMWkDldTgZk38Zay",
+  "tags": []
+}
