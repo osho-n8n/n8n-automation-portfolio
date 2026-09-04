@@ -1,0 +1,832 @@
+{
+  "name": "Real Estate Agentic AI System",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        1392
+      ],
+      "id": "38974f83-2e8b-4011-b707-a466f7036324",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5h2Mc5i2xS3kQX0O",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTyx8GkkQ85lnoc",
+          "mode": "list",
+          "cachedResultName": "Real Estate Listings",
+          "cachedResultUrl": "https://airtable.com/appTyx8GkkQ85lnoc"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblCFyYAaY8i2K2Mc",
+          "mode": "list",
+          "cachedResultName": "Listings",
+          "cachedResultUrl": "https://airtable.com/appTyx8GkkQ85lnoc/tblCFyYAaY8i2K2Mc"
+        },
+        "filterByFormula": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Filter_By_Formula', `Searches the Real Estate Listings table for properties matching criteria like location, property type, bedrooms, price range, or status. When filtering by multiple conditions, use Airtable's AND() or OR() function syntax, for example: AND({Property Type} = 'Apartment', {Status} = 'Available'). Do not use plain AND between conditions without wrapping them in AND().`, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        1392
+      ],
+      "id": "e189fff3-0fc6-4646-8505-7c32604ea27b",
+      "name": "Search records in Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NCPpAGFHAWe86IEz",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        496,
+        1392
+      ],
+      "id": "c002e224-ae4a-4801-8f31-48044cc1eeff",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Get row(s) in sheet in Google SRetrieves all property listings from the Google Sheets version of the listings database. Use this to answer questions about available properties, locations, prices, and bedrooms",
+        "documentId": {
+          "__rl": true,
+          "value": "1HqontT5yYGj3r-OeqdZBox0YvzGwccjyBjL5k-xqumU",
+          "mode": "list",
+          "cachedResultName": "Real Estate Listings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HqontT5yYGj3r-OeqdZBox0YvzGwccjyBjL5k-xqumU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HqontT5yYGj3r-OeqdZBox0YvzGwccjyBjL5k-xqumU/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        752,
+        1392
+      ],
+      "id": "8ca1093e-c9b3-48fe-b175-f4ffb32a4838",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "p63YH5KLgyklIlGh",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -784,
+        768
+      ],
+      "id": "18c13c57-c43e-4e66-bf4e-509d00009a89",
+      "name": "Telegram Trigger",
+      "webhookId": "74bf572c-da3a-4e0c-9b60-23389f5e1d19",
+      "credentials": {
+        "telegramApi": {
+          "id": "sU1DM0ouR2qgm53Y",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        768
+      ],
+      "id": "7dcc6e28-b8cf-4dab-a08d-146da8359b79",
+      "name": "Send a text message",
+      "webhookId": "c60b1e02-ba35-43f3-b553-f5521290f2a4",
+      "credentials": {
+        "telegramApi": {
+          "id": "sU1DM0ouR2qgm53Y",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "You are a message router for a real estate agency's Telegram bot. Classify the customer's message into exactly ONE of these three categories:\n\n- property_search: questions about available properties, listings, prices, locations, bedrooms, or availability\n- booking_request: requests to schedule a viewing, book an appointment, or ask about visiting a property\n- general_inquiry: anything else, such as office hours, contact information, or general questions\n\nReply with ONLY one word: property_search, booking_request, or general_inquiry. Do not add any other text, punctuation, or explanation.\nIf the customer's message contains more than one distinct request (for example, asking to browse properties and also book a specific one), classify it by the most actionable or time-sensitive intent — booking requests take priority over search requests, and search requests take priority over general inquiries. Do not ignore the secondary request; it will be acknowledged separately by the specialist agent handling the primary request."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -560,
+        768
+      ],
+      "id": "5c896893-c523-4635-a8ef-7303a4261559",
+      "name": "Router Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -544,
+        992
+      ],
+      "id": "d63880e1-7b27-4bda-b3aa-38e74e30909f",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "5h2Mc5i2xS3kQX0O",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "property_search",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a5af696e-55f0-4ffb-bcbb-86b2cf33ca6d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Property Search"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "020bd92f-7b71-4158-b0f6-6f63bbe4c068",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "booking_request",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Booking Request"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e17366b6-cf80-4324-8c1d-39c8dc24867e",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "general_inquiry",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "General Inquiry"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -208,
+        752
+      ],
+      "id": "eb0316e5-ff28-43ca-8894-f883c85d1135",
+      "name": "Route by Category"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "options": {
+          "systemMessage": "You are a property search assistant for a real estate agency. Help customers find properties using the Airtable and Google Sheets tools available to you. Answer based only on real data returned by these tools — never guess or make up property details. If the customer's message also mentions something outside your specialty (for example, a booking request mixed with a search request), briefly acknowledge that in your reply and let them know you'll help with the primary request first, then they can ask about the other topic next."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        496,
+        1168
+      ],
+      "id": "c10aa713-9583-4dc8-8401-29e35f860283",
+      "name": "Property Search Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "options": {
+          "systemMessage": "You are a friendly assistant for a real estate agency called Prime Estates. Use ONLY the facts below to answer customer questions. Do not guess or make up any information not listed here.\n\nKnown facts:\n- Office hours: Sunday to Thursday, 9 AM to 6 PM (closed Friday and Saturday)\n- Contact email: info@primeestates.com\n- Contact phone: +974 1234 5678\n- Office location: West Bay, Doha, Qatar\n\nIf a customer asks something not covered by these facts, politely say: \"I don't have that information right now, but I'll have someone from our team follow up with you.\" Keep replies short, warm, and professional.\nIf the customer's message also mentions something outside your specialty (for example, a search or booking request mixed in), briefly acknowledge that in your reply and let them know you'll help with their general question first, then they can ask about properties or bookings next."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        496,
+        256
+      ],
+      "id": "8cdee0cc-69ab-4a54-a599-3839420a01bb",
+      "name": "General Inquiry Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        480
+      ],
+      "id": "2d4c8271-913a-4e0e-a506-73a92a14e92f",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "5h2Mc5i2xS3kQX0O",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message_text }}",
+        "options": {
+          "systemMessage": "You are a booking assistant for a real estate agency. Help customers schedule property viewings. When a customer requests a property, use the Airtable search tool to verify it exists and check its status before booking. If the property is available, before finalizing the booking, use the calendar search tool to check if the requested date and time already has an existing viewing scheduled. If there is a conflict, tell the customer honestly that the slot is already booked and ask them to choose a different time. If there is no conflict, proceed to confirm the details and book it using the Google Calendar tool. If the property search returns no matching property, tell the customer clearly that you couldn't find a property by that name and ask them to double-check the spelling. If the property exists but its status is not Available, tell the customer honestly that it's currently unavailable (mention Rented or Sold if relevant) and suggest they ask about other available properties. Keep responses short and friendly.\nIf the customer's message also mentions something outside your specialty (for example, a search request mixed with a booking request), briefly acknowledge that in your reply and let them know you'll help with the booking first, then they can ask about other properties next.\nIf a customer wants to cancel a booking, first use the calendar search tool to find the existing event matching the property name and date they mention. If you find a matching event, confirm the details with the customer (property, date, time) before deleting it. Only use the delete event tool after the customer explicitly confirms they want to cancel that specific booking. If no matching event is found, tell the customer honestly that you couldn't find a booking matching those details."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        496,
+        656
+      ],
+      "id": "94f2e20f-85de-4275-b69d-dd102baa88c6",
+      "name": "Booking Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        880
+      ],
+      "id": "445d34fa-32b6-44ad-a1b6-f27776272dd7",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "5h2Mc5i2xS3kQX0O",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "maosho677@gmail.com",
+          "mode": "list",
+          "cachedResultName": "maosho677@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Description', ``, 'string') }}",
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        496,
+        880
+      ],
+      "id": "eb6e1d51-b702-40fc-8b3c-4f56e0193187",
+      "name": "Create an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "ApQ9zvlNAhf6SObt",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.chat_id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        368,
+        880
+      ],
+      "id": "e21444d6-0175-44d2-ab5b-bfaa663d7424",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c2c1fec7-e2df-4724-bbaf-93df23d09e93",
+              "name": "chat_id",
+              "value": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+              "type": "string"
+            },
+            {
+              "id": "62d17ea7-11f0-4d2c-bc70-cc6d8624457b",
+              "name": "message_text",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        768
+      ],
+      "id": "afeedbfc-b278-426c-a7de-6cbbf59e64c4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTyx8GkkQ85lnoc",
+          "mode": "list",
+          "cachedResultName": "Real Estate Listings",
+          "cachedResultUrl": "https://airtable.com/appTyx8GkkQ85lnoc"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblCFyYAaY8i2K2Mc",
+          "mode": "list",
+          "cachedResultName": "Listings",
+          "cachedResultUrl": "https://airtable.com/appTyx8GkkQ85lnoc/tblCFyYAaY8i2K2Mc"
+        },
+        "filterByFormula": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Filter_By_Formula', `Searches the Real Estate Listings table by Property Name to check if it exists and what its current status is. Always filter using ONLY the Property Name field, for example: {Property Name} = 'Sunset Villa'. Do NOT include Status in the filter formula — retrieve the record first, then read its Status field from the result to determine if it is Available, Rented, or Sold. If multiple properties are being checked, you may use OR() to search multiple names, but never filter by Status.`, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        880
+      ],
+      "id": "cfcf1d9b-1c57-415e-87c1-35045a12925f",
+      "name": "Search records in Airtable1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NCPpAGFHAWe86IEz",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -416,
+        992
+      ],
+      "id": "c47ab302-14ed-4bbc-a43d-ed13c0ff5b4f",
+      "name": "Simple Memory2"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Checks the Google Calendar for existing property viewing events within a given date/time range, to detect scheduling conflicts before confirming a new booking. Before finalizing any booking, search for events on the same date; if an event already exists that overlaps with the requested time, treat it as a conflict.",
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "maosho677@gmail.com",
+          "mode": "list",
+          "cachedResultName": "maosho677@gmail.com"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        752,
+        880
+      ],
+      "id": "e9d20e85-0ba6-4011-8a16-b56c765d907d",
+      "name": "Get many events in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "ApQ9zvlNAhf6SObt",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Deletes a specific calendar event by its Event ID. Only use this after first using the calendar search tool to find the exact event matching the customer's property and date, and after the customer has confirmed they want to cancel that specific booking. Never delete an event without first confirming its Event ID matches the customer's request.",
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "maosho677@gmail.com",
+          "mode": "list",
+          "cachedResultName": "maosho677@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        880,
+        880
+      ],
+      "id": "6237e6bf-4b01-4aec-866a-14750151e8e4",
+      "name": "Delete an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "ApQ9zvlNAhf6SObt",
+          "name": "Google Calendar account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Property Search Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records in Airtable": {
+      "ai_tool": [
+        [
+          {
+            "node": "Property Search Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Property Search Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "Property Search Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Router Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router Agent": {
+      "main": [
+        [
+          {
+            "node": "Route by Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Router Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Category": {
+      "main": [
+        [
+          {
+            "node": "Property Search Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "General Inquiry Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Property Search Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "General Inquiry Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "General Inquiry Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Booking Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "Booking Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Booking Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Booking Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Booking Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records in Airtable1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Booking Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "Router Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many events in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "Booking Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "Booking Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "fcd11807-ff13-45b6-a295-dc5f4790073a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "NHZ1kH1FVij85XHU",
+  "tags": []
+}
