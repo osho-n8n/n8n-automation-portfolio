@@ -1,0 +1,701 @@
+{
+  "name": "Salon Customer Support Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "options": {
+          "systemMessage": "You are a friendly customer support assistant for a salon. Answer customer questions about services, prices, and availability using the Airtable search tool — never guess or make up information about services, prices, or availability. If a service exists but is currently unavailable, tell the customer honestly and suggest they check back later or ask about a similar available service. If you cannot find information to answer a question, say so and offer to have someone follow up.\n\nSome customers will write in Arabic or another language. When searching the Airtable tool for a service, always translate the service name to English first (e.g. \"تنظيف الوجه\" → \"Facial\" or \"Cleansing Facial\"), since all service records are stored in English — searching with the original non-English term will fail to find an existing service. Still reply to the customer in the same language they used, regardless of the language used internally to search.\n\nAlways reply in the language of the customer's MOST RECENT message only — do not let earlier messages in the conversation (which may have been in a different language) influence which language you reply in.\n\nIMPORTANT: When deciding which language to reply in, completely ignore the language of any earlier messages in this conversation's memory or history. Judge ONLY the language of the CURRENT incoming message being answered right now. Even if the last several messages were in Arabic, if the current message is in English, you MUST reply in English — and vice versa. Do not let earlier language usage in the conversation influence your choice at all."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        688,
+        -256
+      ],
+      "id": "3fd14765-d045-465a-ab2d-fb32587460fc",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        624,
+        -32
+      ],
+      "id": "867535e9-4c0c-42ff-979d-709a76d9a911",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5h2Mc5i2xS3kQX0O",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        752,
+        -32
+      ],
+      "id": "8b188030-0b3c-4b62-b230-81f3effb56d5",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appEHJfsbVTEXRYuN",
+          "mode": "list",
+          "cachedResultName": "Salon Services",
+          "cachedResultUrl": "https://airtable.com/appEHJfsbVTEXRYuN"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblEVFcOvQPAQHrHZ",
+          "mode": "list",
+          "cachedResultName": "Services",
+          "cachedResultUrl": "https://airtable.com/appEHJfsbVTEXRYuN/tblEVFcOvQPAQHrHZ"
+        },
+        "filterByFormula": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Filter_By_Formula', `Use this tool to search the salon's services database. Search by Service Name or Category when the customer asks about a specific service or type of service.\n\nSince customers rarely type exact service names, use partial matching for Service Name with FIND('keyword', {Service Name}) instead of exact equality (=). For example, to search for \"haircut\" use FIND('Haircut', {Service Name}) > 0, not {Service Name} = 'Haircut'.\n\nFor multi-word customer phrases (e.g. \"gel extensions\", \"hair coloring\"), do not search using the full phrase as one FIND string, since the customer's word order may not match the exact service name (e.g. the real service is \"Gel Nail Extensions\", not \"Gel Extensions\"). Instead, pick the single most distinctive word from the customer's phrase (e.g. \"Extensions\" or \"Gel\") and search using FIND with just that one word.\n\nDo not filter by the Available field in the search formula — always retrieve the matching record(s) first, then check the Available field in the result to tell the customer if that service is currently offered.\n\nWhen combining multiple conditions, use AND(condition1, condition2) or OR(condition1, condition2) syntax, for example: AND(FIND('Hair', {Category}) > 0, {Price (QAR)} < 200). Never write conditions side by side without AND()/OR() wrapping them.`, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        -32
+      ],
+      "id": "440423ba-ab62-41bf-835c-885218de5e0e",
+      "name": "Search records in Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NCPpAGFHAWe86IEz",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Classify this customer message into exactly one category: Booking, Pricing, General Inquiry, or Complaint.\n\nAlso separately determine if the message contains a genuine complaint or negative feedback — meaning the customer is expressing dissatisfaction, frustration, or describing something that went wrong (e.g. bad service, long wait, rude staff, unmet expectations).\n\nA plain factual question (e.g. asking about price, availability, or how to book) is NOT a complaint, even if it sounds curt or is written in a language other than English. Only mark \"yes\" if there is clear dissatisfaction or a negative experience being described. When in doubt, mark \"no\".\n\nExamples:\n- \"How much is a manicure?\" → Contains Complaint: no\n- \"كم سعر المانيكير؟\" (How much is a manicure?) → Contains Complaint: no\n- \"Your stylist was rude to me\" → Contains Complaint: yes\n- \"😡😡😡\" → Contains Complaint: yes\n\nReply in exactly this format, nothing else:\nCategory: <category>\nContains Complaint: <yes or no>\n\nMessage: {{ $('Telegram Trigger').item.json.message.text }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        48,
+        -256
+      ],
+      "id": "d714e695-3acf-417f-9c00-40f5ec63cd6f",
+      "name": "Ticket Classifier",
+      "credentials": {
+        "openAiApi": {
+          "id": "5h2Mc5i2xS3kQX0O",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1398866e-c83a-4a51-887d-92068cca7e65",
+              "leftValue": "={{ String($('Prepare Category').item.json.containsComplaint) === 'true' }}",
+              "rightValue": "Complaint",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1216,
+        -464
+      ],
+      "id": "27ce57ca-a5ca-41c9-a280-495c386c5b7a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "6119448959",
+        "text": "=⚠️ Complaint received: {{ $('Telegram Trigger').item.json.message.text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1536,
+        -544
+      ],
+      "id": "8d46830b-e8b4-4be6-95a3-8e827eb5cf32",
+      "name": "Send a text message",
+      "webhookId": "2257248d-6f2b-497a-ad7b-cb63c8629557",
+      "credentials": {
+        "telegramApi": {
+          "id": "YKBUnkHQDlbJ0KjX",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f6ee7358-9002-42be-825e-5ee4345a2b6e",
+              "name": "category",
+              "value": "={{ $json.output[0].content[0].text.match(/Category:\\s*([\\w\\s]+?)(?=Contains Complaint|$)/)[1].trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "d49ac78e-a212-4396-bbaa-e3d78b0bb0ab",
+              "name": "containsComplaint",
+              "value": "={{ $json.output[0].content[0].text.match(/Contains Complaint:\\s*(\\w+)/)[1].trim().toLowerCase() === 'yes' }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        -256
+      ],
+      "id": "d54b4914-8d12-4c33-a1b7-3f9418d7eabc",
+      "name": "Prepare Category"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appEHJfsbVTEXRYuN",
+          "mode": "list",
+          "cachedResultName": "Salon Services",
+          "cachedResultUrl": "https://airtable.com/appEHJfsbVTEXRYuN"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblC68JavPA5M8Ok8",
+          "mode": "list",
+          "cachedResultName": "Conversations",
+          "cachedResultUrl": "https://airtable.com/appEHJfsbVTEXRYuN/tblC68JavPA5M8Ok8"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "AI Response": "={{ $json.output }}",
+            "Category": "={{ $('Prepare Category').item.json.category }}",
+            "Customer Message": "={{ $('Telegram Trigger').item.json.message.text }}",
+            "Session ID": "={{ String($('Telegram Trigger').item.json.message.chat.id) }}",
+            "Contains Complaint": "={{ String($('Prepare Category').item.json.containsComplaint).trim().toLowerCase() === 'true' }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Customer Message",
+              "displayName": "Customer Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI Response",
+              "displayName": "AI Response",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Booking",
+                  "value": "Booking"
+                },
+                {
+                  "name": "Pricing",
+                  "value": "Pricing"
+                },
+                {
+                  "name": "General Inquiry",
+                  "value": "General Inquiry"
+                },
+                {
+                  "name": "Complaint",
+                  "value": "Complaint"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Session ID",
+              "displayName": "Session ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Contains Complaint",
+              "displayName": "Contains Complaint",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1088,
+        -256
+      ],
+      "id": "94d023ab-76cb-4f58-99e4-f4e1ffdbd47c",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "NCPpAGFHAWe86IEz",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -400,
+        -160
+      ],
+      "id": "9dd3bef0-1447-41fd-b5b4-af1a5c8a5e4a",
+      "name": "Telegram Trigger",
+      "webhookId": "b7b69bfc-c24d-4216-ba91-c70b7dc18af0",
+      "credentials": {
+        "telegramApi": {
+          "id": "YKBUnkHQDlbJ0KjX",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $('AI Agent').item.json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1504,
+        112
+      ],
+      "id": "4089733b-0138-4d43-8d08-d289c58237f9",
+      "name": "Send a text message1",
+      "webhookId": "2b8196a7-2028-4a7f-a273-f3fb983a2e97",
+      "credentials": {
+        "telegramApi": {
+          "id": "YKBUnkHQDlbJ0KjX",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "f66113f5-8219-4948-9fd7-da42f868804f"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9d144ad6-a142-4e72-b064-6fb0d3ebecbb",
+                    "leftValue": "={{ $json.message.photo }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "array",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Photo"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9e93fcd5-54db-4e16-992a-43413a0df89a",
+                    "leftValue": "={{ $json.message.sticker }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Sticker"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2baaacd7-820d-4121-8418-38821812a86a",
+                    "leftValue": "={{ $json.message.voice }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voice"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        -208
+      ],
+      "id": "2a97fee4-1b8b-4af1-9c1f-8b1ef7972722",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Sorry, I can only read text messages right now — could you type your question instead?",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        112,
+        -64
+      ],
+      "id": "3875609c-e90e-4fa7-9c58-6f8bf7c41a4d",
+      "name": "Send a text message2",
+      "webhookId": "d5049679-a9f0-40a9-88ac-d14a73bade75",
+      "credentials": {
+        "telegramApi": {
+          "id": "YKBUnkHQDlbJ0KjX",
+          "name": "Telegram account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records in Airtable": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ticket Classifier": {
+      "main": [
+        [
+          {
+            "node": "Prepare Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Category": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Ticket Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e78a9046-c950-4a4f-9486-07307fcb3602",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2a998e841bdc587a956e1e5630a6c4b95adc8cf632ead0097ad1d2ababcc6c3c"
+  },
+  "nodeGroups": [],
+  "id": "3Vtvm2FeFmOJVOe9",
+  "tags": []
+}
